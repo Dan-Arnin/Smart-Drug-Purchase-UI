@@ -8,6 +8,7 @@ function App() {
   const [currentView, setCurrentView] = useState('upload'); // upload, details, chat
   const [prescriptionData, setPrescriptionData] = useState(null);
   const [verificationData, setVerificationData] = useState(null);
+  const [safetyData, setSafetyData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileUpload = async (file) => {
@@ -42,37 +43,88 @@ function App() {
 
       if (data.success) {
         console.log('✓ Upload successful');
-        setPrescriptionData(data.data);
         console.log('✓ Prescription data set');
 
-        // Verify doctor
+        // Prepare payloads for parallel API calls
         const verifyPayload = {
           doctor_name: data.data.doctor_info.doctor_name,
           registration_number: data.data.doctor_info.registration_number,
           medical_council: "",
         };
-        console.log('=== DOCTOR VERIFICATION STARTED ===');
-        console.log('Verification payload:', verifyPayload);
+
+        const medicineNames = data.data.medicines.map(med => med.medicine_name);
+        const safetyPayload = {
+          medicines: medicineNames
+        };
+
+        console.log('=== PARALLEL CHECKS STARTED ===');
+        console.log('Doctor verification payload:', verifyPayload);
+        console.log('Medicine safety payload:', safetyPayload);
 
         const verifyUrl = 'http://localhost:8000/api/v1/verify-doctor';
-        console.log('Verifying at:', verifyUrl);
+        const safetyUrl = 'http://localhost:8000/api/v1/check-medicine-safety';
 
-        const verifyResponse = await fetch(verifyUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(verifyPayload),
-        });
+        // Run both API calls in parallel
+        const [verifyResponse, safetyResponse] = await Promise.all([
+          fetch(verifyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(verifyPayload),
+          }),
+          fetch(safetyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(safetyPayload),
+          })
+        ]);
 
         console.log('Verify response status:', verifyResponse.status);
-        console.log('Verify response ok:', verifyResponse.ok);
+        console.log('Safety response status:', safetyResponse.status);
 
-        const verifyData = await verifyResponse.json();
+        const [verifyData, safetyDataResponse] = await Promise.all([
+          verifyResponse.json(),
+          safetyResponse.json()
+        ]);
+
         console.log('Verify response data:', verifyData);
+        console.log('Safety response data:', safetyDataResponse);
 
         setVerificationData(verifyData);
-        console.log('✓ Verification complete');
+        setSafetyData(safetyDataResponse);
+        console.log('✓ Verification and safety checks complete');
+
+        // Filter out unsafe medicines
+        if (safetyDataResponse.success && safetyDataResponse.results) {
+          const safeMedicines = data.data.medicines.filter(medicine => {
+            const safetyResult = safetyDataResponse.results.find(
+              result => result.medicine_name === medicine.medicine_name
+            );
+            return safetyResult && !safetyResult.flagged;
+          });
+
+          const unsafeMedicines = data.data.medicines.filter(medicine => {
+            const safetyResult = safetyDataResponse.results.find(
+              result => result.medicine_name === medicine.medicine_name
+            );
+            return safetyResult && safetyResult.flagged;
+          });
+
+          console.log('Safe medicines:', safeMedicines);
+          console.log('Unsafe medicines (filtered out):', unsafeMedicines);
+
+          // Update prescription data with only safe medicines
+          const updatedPrescriptionData = {
+            ...data.data,
+            medicines: safeMedicines,
+            originalMedicines: data.data.medicines // Keep original for reference
+          };
+
+          setPrescriptionData(updatedPrescriptionData);
+        } else {
+          // If safety check fails, use all medicines
+          console.warn('Safety check failed or no results, showing all medicines');
+          setPrescriptionData(data.data);
+        }
 
         setCurrentView('details');
         console.log('✓ Switched to details view');
@@ -102,6 +154,7 @@ function App() {
     setCurrentView('upload');
     setPrescriptionData(null);
     setVerificationData(null);
+    setSafetyData(null);
   };
 
   return (
@@ -114,6 +167,7 @@ function App() {
         <PrescriptionDetails
           prescriptionData={prescriptionData}
           verificationData={verificationData}
+          safetyData={safetyData}
           onStartChat={handleStartChat}
           onBack={handleBackToUpload}
         />

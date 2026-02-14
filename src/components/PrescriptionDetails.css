@@ -133,6 +133,121 @@
     color: var(--text-primary);
 }
 
+/* Safety Card */
+.safety-card {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-xl);
+    animation: slideInRight 0.5s ease-out;
+    animation-delay: 0.1s;
+    animation-fill-mode: backwards;
+}
+
+.safety-card.all-safe {
+    background: linear-gradient(135deg, rgba(127, 217, 154, 0.15) 0%, rgba(168, 230, 193, 0.15) 100%);
+    border: 2px solid var(--accent-mint);
+}
+
+.safety-card.has-unsafe {
+    background: linear-gradient(135deg, rgba(255, 229, 217, 0.3) 0%, rgba(255, 214, 232, 0.2) 100%);
+    border: 2px solid #FFA07A;
+}
+
+.safety-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.safety-card.all-safe .safety-icon {
+    background: linear-gradient(135deg, var(--accent-mint) 0%, #A8E6C1 100%);
+}
+
+.safety-card.has-unsafe .safety-icon {
+    background: linear-gradient(135deg, #FFA07A 0%, #FFB399 100%);
+}
+
+.safety-icon svg {
+    width: 32px;
+    height: 32px;
+    color: white;
+}
+
+.safety-content {
+    flex: 1;
+}
+
+.safety-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.safety-card.all-safe .safety-title {
+    color: #2F855A;
+}
+
+.safety-card.has-unsafe .safety-title {
+    color: #C05621;
+}
+
+.safety-reason {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.unsafe-medicines-list {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid #FFA07A;
+}
+
+.unsafe-label {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.unsafe-medicines-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.unsafe-medicine-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs);
+    color: #C05621;
+    font-weight: 600;
+    font-size: 0.9375rem;
+}
+
+.unsafe-medicine-item svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.safety-note {
+    margin: var(--spacing-sm) 0 0 0;
+    padding: var(--spacing-sm);
+    background: rgba(255, 165, 122, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+
 /* Info Sections */
 .info-section {
     margin-bottom: var(--spacing-xl);
@@ -296,6 +411,15 @@
     }
 
     .verification-icon {
+        margin: 0 auto;
+    }
+
+    .safety-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .safety-icon {
         margin: 0 auto;
     }
 }

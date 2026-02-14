@@ -14,8 +14,10 @@ A modern, sleek, and highly interactive frontend for a medicine buying platform 
 
 ### 2. **Prescription Details View**
 - Doctor verification status with visual indicators
+- **Medicine safety check** - automatically filters unsafe medicines
+- Visual warnings for flagged medicines
 - Patient information display
-- Detailed medicine list with dosage instructions
+- Detailed medicine list with dosage instructions (safe medicines only)
 - Smooth transitions and animations
 - Responsive design
 
@@ -101,6 +103,44 @@ curl --location 'http://localhost:8000/api/v1/upload-prescription' \
 }
 ```
 
+### 3. Check Medicine Safety
+**Endpoint:** `POST http://localhost:8000/api/v1/check-medicine-safety`
+
+**Request:**
+```json
+{
+  "medicines": [
+    "Paracetamol",
+    "Alprazolam",
+    "Codeine"
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "medicine_name": "Paracetamol",
+      "flagged": false
+    },
+    {
+      "medicine_name": "Alprazolam",
+      "flagged": true
+    },
+    {
+      "medicine_name": "Codeine",
+      "flagged": true
+    }
+  ],
+  "error": null
+}
+```
+
+**Note:** The application automatically filters out medicines flagged as unsafe and displays them to the user with a warning.
+
 ## 📝 Console Logging
 
 The application now includes comprehensive logging at every step:
@@ -111,8 +151,15 @@ The application now includes comprehensive logging at every step:
 - `✓ FormData created` - Form data preparation
 - `Upload response status` - API response status
 - `✓ Upload successful` - Successful upload
-- `=== DOCTOR VERIFICATION STARTED ===` - Verification process
-- `✓ Verification complete` - Verification success
+- `=== PARALLEL CHECKS STARTED ===` - Doctor verification and medicine safety check
+- `Doctor verification payload` - Verification request data
+- `Medicine safety payload` - Safety check request data
+- `Verify response status` - Doctor verification response
+- `Safety response status` - Medicine safety response
+- `✓ Verification and safety checks complete` - Both checks completed
+- `Safe medicines` - List of safe medicines
+- `Unsafe medicines (filtered out)` - List of flagged medicines
+- `✓ Switched to details view` - Navigation to details
 - `=== UPLOAD PROCESS COMPLETE ===` - End of process
 
 ### Error Logs
@@ -182,14 +229,21 @@ src/
    - File is validated and sent to API
    - Loading indicator shows progress
 
-2. **View Details**
+2. **Parallel Verification & Safety Checks**
+   - Doctor verification runs in parallel with medicine safety check
+   - Both API calls complete simultaneously for faster processing
+   - Unsafe medicines are automatically filtered out
+
+3. **View Details**
    - Doctor verification status displayed
+   - Medicine safety check results shown
+   - Warning displayed if any medicines were flagged as unsafe
    - Patient information shown
-   - Medicine list with dosage details
+   - Safe medicine list with dosage details
    - Option to chat with AI pharmacist
 
-3. **Chat with AI**
-   - Sidebar shows prescription summary
+4. **Chat with AI**
+   - Sidebar shows prescription summary (safe medicines only)
    - Main chat area for interaction
    - Quick question buttons for common queries
    - Real-time message exchange
